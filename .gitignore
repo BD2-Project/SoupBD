@@ -216,3 +216,45 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Agents
+.agents/
+.claude/
+.cursor/
+.codeium/
+.windsurf/
+
+# Agentes autónomos y CLI de IA
+.aider*
+.gpt-pilot/
+.openinterpreter/
+
+# Caché de LLMs y Bases de Datos Vectoriales Locales
+.langchain/
+.llamaindex/
+*.db
+*.log
+.chroma/
+
+# Historiales de chat generados por extensiones (Copilot, Claude, Gemini)
+*.chat.md
+*.chat.txt
+.chat-history/
+.copilot_history/
+copilot-chat/
+
+# Configuraciones de agentes locales (para evitar filtrar API keys de OpenAI/Anthropic)
+.llm_config.json
+.oai_keys
+aider.conf.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs genéricos
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
