@@ -1,0 +1,53 @@
+site_name: SoupDB
+site_description: Motor de base de datos multimodal con RAG sobre papers académicos
+repo_url: https://github.com/BD2-Project/SoupBD
+site_url: https://BD2-Project.github.io/SoupBD
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - toc.integrate
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Inicio: index.md
+  - Contratos: contratos.md
+  - API Reference:
+      - common: api/common.md
+      - storage: api/storage.md
+      - indexes: api/indexes.md
+      - query: api/query.md
+  - Decisiones: decisiones.md
+  - Estrategia de release: estrategia-release.md
