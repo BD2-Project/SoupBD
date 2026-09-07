@@ -6,43 +6,71 @@
 [![license](https://img.shields.io/github/license/BD2-Project/SoupBD)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%2B-blue)]()
 
-Motor de base de datos **multimodal** (relacional, espacial, vectorial) con integración de IA, construido desde cero en Python. La aplicación final es un **RAG sobre papers académicos**. Proyecto académico — UTEC, Base de Datos 2, ciclo 2026-2.
+Motor de base de datos **multimodal** (relacional, espacial y vectorial) construido desde cero en Python, con integración de IA. La aplicación final es un **RAG sobre documentos académicos**: indexa, recupera y genera respuestas sobre el contenido de papers, informes y otros materiales académicos.
+
+## IA aplicada
+
+- **RAG** (retrieval-augmented generation) sobre documentos académicos.
+- **Búsqueda vectorial** (embeddings, HNSW) para similitud semántica.
+- **Recuperación léxica** (BM25) y fusión con la búsqueda vectorial.
+- **Extracción de características multimodales** (SIFT, MFCC, K-Means).
+
+<p align="center"><sub>Proyecto académico · UTEC · Base de Datos 2 · ciclo 2026-2</sub></p>
 
 ## Arquitectura
 
 ```mermaid
 flowchart LR
-    subgraph SoupChef["SoupChef (Frontend)"]
+    subgraph Chef["SoupChef (Cliente)"]
         UI["Svelte + Tauri"]
     end
-    subgraph rsoup["rsoup (Driver)"]
+    subgraph R["rsoup (Driver de red / transacciones)"]
         DRV["Rust — TCP/IP capa 4"]
     end
-    subgraph SoupDB["SoupDB (Engine)"]
+    subgraph DB["SoupDB (Gestor de base de datos)"]
         Q["Query Processor"] --> IX["Indexes"]
         Q --> AL["Algorithms"]
         Q --> ST["Storage"]
         ST --> DM["DiskManager"]
+        Q --> TX["Transacciones y Concurrencia"]
+        TX --> ST
     end
     UI <-->|"Tauri invoke / specta TS"| DRV
     DRV <-->|"protocolo binario"| Q
+    DRV <--> TX
     PG[("PostgreSQL 16")] -. "comparación experimental" .-> Q
 ```
 
-Trabajo **multirepo**: `SoupDB` (motor, este repo), `rsoup` (driver de red y transacciones) y `SoupChef` (frontend). El contexto compartido de arquitectura, reglas y convenciones vive en el repositorio privado `.agents` (punto de entrada: `AGENTS.md`).
+Trabajo **multirepo**: `SoupDB` (gestor de base de datos), desarrollado en este repositorio; `rsoup` (driver de red y control de transacciones y concurrencia); `SoupChef` (cliente de escritorio del gestor). El desarrollo se coordina mediante contexto compartido de arquitectura, reglas y convenciones que aplican a todos los equipos y a los agentes de IA.
+
+## Dependencias
+
+| Dependencia | Uso | Instalación |
+|---|---|---|
+| Python ≥ 3.11 | Motor de base de datos | python.org o gestor del SO |
+| uv | Gestor de paquetes y entornos | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Docker | Contenedor y despliegue local | Docker Desktop o gestor del SO |
+| PostgreSQL 16 | Comparación experimental | `docker compose up postgres` o gestor del SO |
+| typst | Informe técnico (`paper/`) | gestor del SO |
 
 ## Setup
 
 ```bash
-# Desarrollo local (nix) — entorno solo para nuestro equipo
-nix-shell
-
-# o con uv directo
-uv sync
+# Instalar dependencias y crear el entorno
+uv sync --all-groups
 
 # Tests y lint
 uv run pytest
 uv run ruff check .
+
+# Documentación (build local)
+uv run --group docs mkdocs build
+
+# Informe técnico
+typst compile paper/main.typ paper/soupdb.pdf
+
+# Despliegue local (gestor + postgres)
+docker compose up
 ```
 
 ## Gestión de paquete y contenedor
