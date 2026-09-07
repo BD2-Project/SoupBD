@@ -1,0 +1,14 @@
+.git
+.agents
+.github
+.venv
+.pytest_cache
+.ruff_cache
+htmlcov
+.coverage
+site
+docs
+paper
+tests
+benchmarks
+scripts

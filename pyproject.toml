@@ -1,0 +1,62 @@
+[project]
+name = "soupdb"
+version = "0.1.0"
+description = "Motor de base de datos multimodal (relacional, espacial, vectorial) con RAG sobre papers académicos."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "BD2-Project" }]
+keywords = ["database", "sql", "rag", "spatial", "vector", "storage"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Database :: Database Engines/Servers",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/BD2-Project/SoupBD"
+Documentation = "https://BD2-Project.github.io/SoupBD"
+
+[dependency-groups]
+dev = [
+  "hypothesis>=6.0",
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.6",
+]
+docs = [
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.26",
+  "pymdown-extensions>=10.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["engine"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["engine"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["engine"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

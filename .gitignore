@@ -207,6 +207,9 @@ tempCodeRunnerFile.py
 # Ruff stuff:
 .ruff_cache/
 
+# Artefactos generados
+paper/soupdb.pdf
+
 # PyPI configuration file
 .pypirc
 
