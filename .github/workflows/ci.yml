@@ -3,12 +3,6 @@ name: ci
 on:
   push:
     branches: [main]
-    paths:
-      - "engine/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
 
