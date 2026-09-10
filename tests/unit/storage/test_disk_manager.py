@@ -151,3 +151,56 @@ def test_allocate_page_after_close_raises_value_error(tmp_path: Path) -> None:
     dm.close()
     with pytest.raises(ValueError):
         dm.allocate_page()
+
+
+def test_rejects_zero_page_size(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        DiskManager(tmp_path / "data.db", page_size=0)
+
+
+def test_rejects_negative_page_size(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        DiskManager(tmp_path / "data.db", page_size=-1)
+
+
+def test_rejects_existing_file_with_size_not_multiple_of_page_size(tmp_path: Path) -> None:
+    path = tmp_path / "data.db"
+    path.write_bytes(b"\x00" * 100)  # not a multiple of 4096
+    with pytest.raises(ValueError):
+        DiskManager(path, page_size=4096)
+
+
+def test_read_page_rejects_negative_page_id(tmp_path: Path) -> None:
+    dm = DiskManager(tmp_path / "data.db", page_size=4096)
+    dm.allocate_page()
+    with pytest.raises(ValueError):
+        dm.read_page(-1)
+
+
+def test_write_page_rejects_negative_page_id(tmp_path: Path) -> None:
+    dm = DiskManager(tmp_path / "data.db", page_size=4096)
+    dm.allocate_page()
+    with pytest.raises(ValueError):
+        dm.write_page(-1, b"\x00" * 4096)
+
+
+def test_read_page_rejects_unallocated_page_id(tmp_path: Path) -> None:
+    dm = DiskManager(tmp_path / "data.db", page_size=4096)
+    dm.allocate_page()
+    with pytest.raises(ValueError):
+        dm.read_page(1)
+
+
+def test_write_page_rejects_unallocated_page_id(tmp_path: Path) -> None:
+    dm = DiskManager(tmp_path / "data.db", page_size=4096)
+    dm.allocate_page()
+    with pytest.raises(ValueError):
+        dm.write_page(1, b"\x00" * 4096)
+
+
+def test_read_page_raises_on_short_read(tmp_path: Path) -> None:
+    dm = DiskManager(tmp_path / "data.db", page_size=4096)
+    page_id = dm.allocate_page()
+    dm._file.truncate(100)  # simulate a corrupted/truncated page on disk
+    with pytest.raises(ValueError):
+        dm.read_page(page_id)
