@@ -263,3 +263,55 @@ def test_pin_returns_same_frame_reflecting_prior_mutations(tmp_path: Path) -> No
 
     frame2 = bm.pin(page_id)
     assert frame2[0] == 0xFF
+
+
+def test_pin_failed_read_does_not_evict_cached_page(tmp_path: Path) -> None:
+    dm, [valid_id] = _disk_manager_with_pages(tmp_path, 1)
+    bm = BufferManager(dm, capacity=1)
+
+    bm.pin(valid_id)
+    bm.unpin(valid_id)
+
+    invalid_id = valid_id + 1  # nunca asignado en el DiskManager
+    with pytest.raises(ValueError):
+        bm.pin(invalid_id)
+
+    reads_before = dm.reads
+    bm.pin(valid_id)
+    assert dm.reads == reads_before  # sigue en caché, no se releyó de disco
+    bm.unpin(valid_id)
+
+
+def test_pin_failed_read_does_not_flush_dirty_victim(tmp_path: Path) -> None:
+    dm, [valid_id] = _disk_manager_with_pages(tmp_path, 1)
+    bm = BufferManager(dm, capacity=1)
+
+    frame = bm.pin(valid_id)
+    frame[:] = b"\xdd" * PAGE_SIZE
+    bm.unpin(valid_id, dirty=True)
+
+    invalid_id = valid_id + 1
+    writes_before = dm.writes
+    with pytest.raises(ValueError):
+        bm.pin(invalid_id)
+    assert dm.writes == writes_before  # no se flusheó la víctima potencial
+
+    reads_before = dm.reads
+    still_cached = bm.pin(valid_id)
+    assert dm.reads == reads_before  # sigue en caché, no se releyó de disco
+    assert still_cached == b"\xdd" * PAGE_SIZE  # el contenido dirty sigue intacto
+    bm.unpin(valid_id)
+
+
+def test_pin_raises_runtime_error_before_touching_disk_when_all_pinned(tmp_path: Path) -> None:
+    dm, page_ids = _disk_manager_with_pages(tmp_path, 3)
+    p0, p1, p2 = page_ids
+    bm = BufferManager(dm, capacity=2)
+
+    bm.pin(p0)
+    bm.pin(p1)
+
+    reads_before = dm.reads
+    with pytest.raises(RuntimeError):
+        bm.pin(p2)
+    assert dm.reads == reads_before  # nunca debió intentar leer disco

@@ -27,9 +27,16 @@ class BufferManager:
         if page_id in self._frames:
             self._frames.move_to_end(page_id)
         else:
+            victim = None
             if len(self._frames) >= self._capacity:
-                self._evict()
-            self._frames[page_id] = bytearray(self._disk_manager.read_page(page_id))
+                victim = self._select_victim()
+
+            data = self._disk_manager.read_page(page_id)
+
+            if victim is not None:
+                self.flush_page(victim)
+                del self._frames[victim]
+            self._frames[page_id] = bytearray(data)
 
         self._pin_counts[page_id] = self._pin_counts.get(page_id, 0) + 1
         return self._frames[page_id]
@@ -62,14 +69,9 @@ class BufferManager:
         for page_id in list(self._dirty):
             self.flush_page(page_id)
 
-    def _evict(self) -> None:
-        """Remove the least-recently-used unpinned frame, flushing it first if dirty."""
+    def _select_victim(self) -> int:
+        """Pick the least-recently-used unpinned page id, without touching the cache."""
         for candidate in self._frames:
             if self._pin_counts.get(candidate, 0) == 0:
-                victim = candidate
-                break
-        else:
-            raise RuntimeError("cannot evict: every page in the buffer pool is pinned")
-
-        self.flush_page(victim)
-        del self._frames[victim]
+                return candidate
+        raise RuntimeError("cannot evict: every page in the buffer pool is pinned")
